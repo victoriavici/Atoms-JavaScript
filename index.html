@@ -3,41 +3,14 @@
     <head>
         <meta charset="utf-8"/>
         <title>Atoms</title>
+        <link rel="stylesheet" href="style.css"/>
     </head>
 
     <body>
-        <table></table>
-        <style>
-            td {
-                border: 1px solid black;
-                width: 60px;
-                height: 60px;
-                text-align: center;
-                color: blue;
-            }
-        </style>
-  
-        <script>
-            var table = document.querySelector("table");
-
-            for (var i = 0; i < 6; i++) {
-                var row = document.createElement("tr");
-                for (var j = 0; j < 6; j++) {
-                    var cell = document.createElement("td");
-                    row.appendChild(cell);
-                }
-            table.appendChild(row);
-            }
-
-            document.addEventListener("click", function(e) {
-                var node = e. target;
-                if (node.nodeName == "TD") { update(node)}
-            });
-
-            var update = function(cell) {
-                if (cell.innerHTML < "oooo")
-                cell.innerHTML += "o";
-            }
-        </script>
+        <script src="draw.js"></script>
+		<script src="board.js"></script>
+        <script src="player.js"></script>
+		<script src="game.js"></script>
+		<script>Game.start()</script>
     </body>
 </html>
