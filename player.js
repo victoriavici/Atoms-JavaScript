@@ -5,13 +5,12 @@ Player.listen = function() {
 }
 
 Player.click = function(e) {
-    var position = Draw.getPosition(e.target);
+    var position = Draw.getPosition(e.clientX, e.clientY);
     if (!position) { return; }
 
     var x = position[0];
     var y = position[1];
-    if (Board[x][y] < 4) {
-        Board[x][y]++;
-    }
+    Board[x][y]++;
+    
     Draw.all();
 }

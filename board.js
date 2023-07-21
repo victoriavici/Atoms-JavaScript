@@ -1,10 +1,8 @@
 var Board = [];
-var N = 6;
 
-
-for (var i = 0; i < N; i++) {
+for (var i = 0; i < Game.SIZE; i++) {
     Board.push([]);
-    for (var j = 0; j < N; j++) {
+    for (var j = 0; j < Game.SIZE; j++) {
         Board[i].push(0);
     }
 }
