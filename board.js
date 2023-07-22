@@ -1,5 +1,7 @@
 var Board = {
-	_data: []
+	DELAY: 200,
+	_data: [],
+	_criticals: []
 };
 
 Board.init = function() {
@@ -28,19 +30,44 @@ Board.getAtoms = function(x, y) {
 }
 
 Board.addAtom = function(x, y) {
-	var cell = this._data[x][y];
-	cell.atoms++;
+	this._addAndCheck(x, y);
 
-	if (cell.atoms > cell.limit) {
-		var neighbors = this._getNeighbors(x, y);
-		cell.atoms -= neighbors.length;
-
-		for (var i=0; i<neighbors.length; i++) {
-			var n = neighbors[i];
-			this.addAtom(n[0], n[1]);
-		}
+	if (this._criticals.length > 0) {
+		Player.stopListening();
+		this._explode();
 	}
 }
+
+Board._addAndCheck = function(x, y) {
+	var cell = this._data[x][y];
+	cell.atoms++;
+	if (cell.atoms > cell.limit) { this._criticals.push([x, y]); }
+
+	Draw.cell(x, y);
+}
+
+Board._explode = function() {
+	var pair = this._criticals.shift();
+	var x = pair[0];
+	var y = pair[1];
+	var cell = this._data[x][y];
+
+	var neighbors = this._getNeighbors(x, y);
+	cell.atoms -= neighbors.length;
+	Draw.cell(x, y);
+
+	for (var i=0; i<neighbors.length; i++) {
+		var n = neighbors[i];
+		this._addAndCheck(n[0], n[1]);
+	}
+
+	if (this._criticals.length) {
+		setTimeout(this._explode.bind(this), this.DELAY);
+	} else {
+		Player.startListening();
+	}
+}
+
 
 Board._getNeighbors = function(x, y) {
 	var results = [];

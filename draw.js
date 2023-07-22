@@ -4,7 +4,8 @@ var Draw = {
 		[[1/2, 1/2]],
 		[[1/4, 1/4], [3/4, 3/4]],
 		[[1/2, 1/2], [1/4, 1/4], [3/4, 3/4]],
-		[[1/4, 1/4], [1/4, 3/4], [3/4, 3/4], [3/4, 1/4]]
+		[[1/4, 1/4], [1/4, 3/4], [3/4, 3/4], [3/4, 1/4]],
+        [[1/2, 1/2], [1/4, 1/4], [1/4, 3/4], [3/4, 3/4], [3/4, 1/4]]
 	],
 	CELL: 60,
 	LINE: 2,
@@ -22,50 +23,31 @@ Draw.init =  function() {
     
     this._context = canvas.getContext("2d");
     this._context.lineWidth = this.LINE;
-    document.body.appendChild(canvas);
-    this.all();
+    this._context.fillStyle = "#000";
+	this._context.fillRect(0, 0, size, size);
 
-}
-
-Draw.all = function() {
-    this._context.fillStyle = "#fff";
-	var width = this._context.canvas.width;
-	var height = this._context.canvas.height;
-
-	this._context.fillRect(0, 0, width, height);
-
-	this._lines();
-	this._cells();
-}
-
-Draw._lines = function() {
-    this._context.beginPath();
-
-    for (var i = 0; i < Game.SIZE + 1; i++) { 
-		var x = this.LINE/2 + i * this.CELL;
-		this._context.moveTo(x, 0);
-		this._context.lineTo(x, this._context.canvas.height);
-	}
-
-	for (var i = 0; i < Game.SIZE + 1; i++) { 
-		var y = this.LINE/2 + i * this.CELL;
-		this._context.moveTo(0, y);
-		this._context.lineTo(this._context.canvas.width, y);
-	}
-
-	this._context.stroke();
-}
-
-Draw._cells = function() {
-	for (var i=0; i<Game.SIZE; i++) {
+    for (var i=0; i<Game.SIZE; i++) {
 		for (var j=0; j<Game.SIZE; j++) {
-			var atoms = Board.getAtoms(i, j);
-			if (atoms) { this._cell(i, j, atoms); }
+			this.cell(i, j);
 		}
 	}
+
+    document.body.appendChild(canvas);
+
 }
 
-Draw._cell = function(x, y, count) {
+Draw.cell = function(x, y) {
+    var size = this.CELL - this.LINE;
+    var left = x*this.CELL + this.LINE;
+    var top  = y*this.CELL + this.LINE;
+    this._context.fillStyle = "#fff";
+    this._context.fillRect(left, top, size, size);
+
+    var count = Board.getAtoms(x, y);
+	if (!count) { 
+        return; 
+    }
+
 	var positions = this.POSITIONS[count];
 
 	for (var i = 0; i < positions.length; i++) {

@@ -1,7 +1,11 @@
 var Player = {};
 
-Player.listen = function() {
-    document.body.addEventListener("click", Player.click);
+Player.startListening = function() {
+	document.body.addEventListener("click", Player.click);
+}
+
+Player.stopListening = function() {
+	document.body.removeEventListener("click", Player.click);
 }
 
 Player.click = function(e) {
@@ -11,6 +15,4 @@ Player.click = function(e) {
     var x = position[0];
     var y = position[1];
     Board.addAtom(x, y);
-    
-    Draw.all();
 }
