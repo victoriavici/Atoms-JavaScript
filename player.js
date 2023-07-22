@@ -10,7 +10,7 @@ Player.click = function(e) {
 
     var x = position[0];
     var y = position[1];
-    Board[x][y]++;
+    Board.addAtom(x, y);
     
     Draw.all();
 }

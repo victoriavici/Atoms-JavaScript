@@ -1,4 +1,11 @@
 var Draw = {
+    POSITIONS: [
+		null,
+		[[1/2, 1/2]],
+		[[1/4, 1/4], [3/4, 3/4]],
+		[[1/2, 1/2], [1/4, 1/4], [3/4, 3/4]],
+		[[1/4, 1/4], [1/4, 3/4], [3/4, 3/4], [3/4, 1/4]]
+	],
 	CELL: 60,
 	LINE: 2,
 	ATOM: 7,
@@ -52,36 +59,22 @@ Draw._lines = function() {
 Draw._cells = function() {
 	for (var i=0; i<Game.SIZE; i++) {
 		for (var j=0; j<Game.SIZE; j++) {
-			this._cell(i, j, Board[i][j]);
+			var atoms = Board.getAtoms(i, j);
+			if (atoms) { this._cell(i, j, atoms); }
 		}
 	}
 }
 
 Draw._cell = function(x, y, count) {
-	x *= this.CELL;
-	y *= this.CELL;
-	switch (count) {
-		case 1:
-			this._atom(x + this.CELL/2, y + this.CELL/2);
-		break;
+	var positions = this.POSITIONS[count];
 
-		case 2:
-			this._atom(x + this.CELL/4, y + this.CELL/4);
-			this._atom(x + this.CELL*3/4, y + this.CELL*3/4);
-		break;
-
-		case 3:
-			this._atom(x + this.CELL/2, y + this.CELL/2);
-			this._atom(x + this.CELL/4, y + this.CELL/4);
-			this._atom(x + this.CELL*3/4, y + this.CELL*3/4);
-		break;
-
-		case 4:
-			this._atom(x + this.CELL/4,   y + this.CELL/4);
-			this._atom(x + this.CELL*3/4, y + this.CELL*3/4);
-			this._atom(x + this.CELL/4,   y + this.CELL*3/4);
-			this._atom(x + this.CELL*3/4, y + this.CELL/4);
-		break;
+	for (var i = 0; i < positions.length; i++) {
+		var position = positions[i];
+		var posX = position[0];
+		var posY = position[1];
+		var atomX = (x + posX) * this.CELL;
+		var atomY = (y + posY) * this.CELL;
+		this._atom(atomX, atomY);
 	}
 }
 
@@ -94,28 +87,6 @@ Draw._atom = function(x, y) {
 	this._context.fillStyle = "blue";
 	this._context.fill();
 	this._context.stroke();
-
-}
-
-
-
-Draw.getPosition = function(node) {
-	if (node.nodeName != "TD") { return null; }
-
-	var x = 0;
-	while (node.previousSibling) {
-		x++;
-		node = node.previousSibling;
-	}
-
-	var row = node.parentNode;
-	var y = 0;
-	while (row.previousSibling) {
-		y++;
-		row = row.previousSibling;
-	}
-
-	return [x, y];
 
 }
 
