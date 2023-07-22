@@ -11,18 +11,16 @@ Player.stopListening = function() {
 }
 
 Player.handleEvent = function(e) {
-    var position = Draw.getPosition(e.clientX, e.clientY);
+	var cursor = new XY(e.clientX, e.clientY);
+    var position = Draw.getPosition(cursor);
     if (!position) { return; }
 
-    var x = position[0];
-    var y = position[1];
-
-	var existing = Board.getPlayer(x, y);
+	var existing = Board.getPlayer(position);
 	if (existing != -1 && existing != this._current) {
          return;
     }
 
-	Board.addAtom(x, y, this._current);
+	Board.addAtom(position, this._current);
 	this._current = (this._current + 1) % Score.getPlayerCount();
 
 }

@@ -1,41 +1,38 @@
 var Board = {
 	DELAY: 200,
-	_data: [],
+	_data: {},
 	_criticals: []
 };
 
 Board.init = function() {
 	for (var i = 0; i < Game.SIZE; i++) {
-		this._data.push([]);
 		for (var j = 0; j < Game.SIZE; j++) {
-			var limit = this._getLimit(i, j);
+			var xy = new XY(i, j);
+			var limit = this._getLimit(xy);
 			var cell = {
 				atoms: 0,
 				limit: limit,
                 player: -1
 			}
-			this._data[i].push(cell);
+			this._data[xy]= cell;
 		}
 	}
 }
 
-Board.getPlayer = function(x, y) {
-	return this._data[x][y].player;
+Board.getPlayer = function(xy) {
+	return this._data[xy].player;
 }
 
-Board._getLimit = function(x, y) {
-	var limit = 4;
-	if (x == 0 || x+1 == Game.SIZE) { limit--; }
-	if (y == 0 || y+1 == Game.SIZE) { limit--; }
-	return limit;
+Board._getLimit = function(xy) {
+	return xy.getNeighbors().length;
 }
 
-Board.getAtoms = function(x, y) {
-	return this._data[x][y].atoms;
+Board.getAtoms = function(xy) {
+	return this._data[xy].atoms;
 }
 
-Board.addAtom = function(x, y, player) {
-	this._addAndCheck(x, y, player);
+Board.addAtom = function(xy, player) {
+	this._addAndCheck(xy, player);
 
 	if (Score.isGameOver()) {
 		return;
@@ -45,8 +42,8 @@ Board.addAtom = function(x, y, player) {
 	}
 }
 
-Board._addAndCheck = function(x, y, player) {
-	var cell = this._data[x][y];
+Board._addAndCheck = function(xy, player) {
+	var cell = this._data[xy];
 
 	Score.removePoint(cell.player);
 	Score.addPoint(player);
@@ -54,30 +51,28 @@ Board._addAndCheck = function(x, y, player) {
 	cell.atoms++;
 	cell.player = player;
 
-	Draw.cell(x, y);
+	Draw.cell(xy);
 
 	if (cell.atoms > cell.limit) {
 		for (var i = 0; i < this._criticals.length; i++) {
 			var tmp = this._criticals[i];
-			if (tmp[0] == x && tmp[1] == y) { return; }
+			if (tmp.equals(xy)) { return; }
 		}
-		this._criticals.push([x, y]);
+		this._criticals.push(xy);
 	}
 }
 
 Board._explode = function() {
-	var pair = this._criticals.shift();
-	var x = pair[0];
-	var y = pair[1];
-	var cell = this._data[x][y];
+	var xy = this._criticals.shift();
+	var cell = this._data[xy];
 
-	var neighbors = this._getNeighbors(x, y);
+	var neighbors = xy.getNeighbors();
 	cell.atoms -= neighbors.length;
-	Draw.cell(x, y);
+	Draw.cell(xy);
 
 	for (var i = 0; i < neighbors.length; i++) {
 		var n = neighbors[i];
-		this._addAndCheck(n[0], n[1], cell.player);
+	this._addAndCheck(neighbors[i], cell.player);
 	}
 
 	if (Score.isGameOver()) {
@@ -87,22 +82,4 @@ Board._explode = function() {
 	} else {
 		Player.startListening();
 	}
-}
-
-
-Board._getNeighbors = function(x, y) {
-	var results = [];
-	if (  x > 0) {
-         results.push([x-1, y]);
-    }
-	if (x + 1 < Game.SIZE) { 
-        results.push([x + 1, y]);
-    }
-	if (  y > 0) {
-         results.push([x, y - 1]);
-    }
-	if (y + 1 < Game.SIZE) {
-         results.push([x , y + 1]);
-    }
-	return results;
 }
