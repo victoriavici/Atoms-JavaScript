@@ -41,7 +41,14 @@ Board.addAtom = function(x, y) {
 Board._addAndCheck = function(x, y) {
 	var cell = this._data[x][y];
 	cell.atoms++;
-	if (cell.atoms > cell.limit) { this._criticals.push([x, y]); }
+	if (cell.atoms > cell.limit) {
+        for (var i=0; i<this._criticals.length; i++) {
+			var tmp = this._criticals[i];
+			if (tmp[0] == x && tmp[1] == y) { return; }
+		}
+         this._criticals.push([x, y]); 
+        
+    }
 
 	Draw.cell(x, y);
 }
