@@ -13,6 +13,7 @@ var Draw = {
 	CELL: 60,
 	LINE: 2,
 	ATOM: 7,
+    COLORS: ["blue", "red"],
 	_context: null
 };
 
@@ -51,7 +52,10 @@ Draw.cell = function(x, y) {
         return; 
     }
 
-	console.log(count);
+    var player = Board.getPlayer(x, y);
+	var color = Score.getColor(player);
+	
+    console.log(count);
 
 	var positions = this.POSITIONS[count];
 
@@ -65,17 +69,17 @@ Draw.cell = function(x, y) {
 		var posY = position[1];
 		var atomX = (x + posX) * this.CELL;
 		var atomY = (y + posY) * this.CELL;
-		this._atom(atomX, atomY);
+		this._atom(atomX, atomY, color);
 	}
 }
 
-Draw._atom = function(x, y) {
+Draw._atom = function(x, y, color) {
 	this._context.beginPath();
 
 	this._context.moveTo(x + this.ATOM, y);
 	this._context.arc(x, y, this.ATOM, 0, 2 * Math.PI, false);
 
-	this._context.fillStyle = "blue";
+	this._context.fillStyle = color
 	this._context.fill();
 	this._context.stroke();
 

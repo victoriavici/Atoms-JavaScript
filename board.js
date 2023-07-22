@@ -11,11 +11,16 @@ Board.init = function() {
 			var limit = this._getLimit(i, j);
 			var cell = {
 				atoms: 0,
-				limit: limit
+				limit: limit,
+                player: -1
 			}
 			this._data[i].push(cell);
 		}
 	}
+}
+
+Board.getPlayer = function(x, y) {
+	return this._data[x][y].player;
 }
 
 Board._getLimit = function(x, y) {
@@ -29,28 +34,35 @@ Board.getAtoms = function(x, y) {
 	return this._data[x][y].atoms;
 }
 
-Board.addAtom = function(x, y) {
-	this._addAndCheck(x, y);
+Board.addAtom = function(x, y, player) {
+	this._addAndCheck(x, y, player);
 
-	if (this._criticals.length > 0) {
+	if (Score.isGameOver()) {
+		return;
+	} else if (this._criticals.length) {
 		Player.stopListening();
 		this._explode();
 	}
 }
 
-Board._addAndCheck = function(x, y) {
+Board._addAndCheck = function(x, y, player) {
 	var cell = this._data[x][y];
+
+	Score.removePoint(cell.player);
+	Score.addPoint(player);
+
 	cell.atoms++;
+	cell.player = player;
+
+	Draw.cell(x, y);
+
 	if (cell.atoms > cell.limit) {
-        for (var i=0; i<this._criticals.length; i++) {
+		for (var i = 0; i < this._criticals.length; i++) {
 			var tmp = this._criticals[i];
 			if (tmp[0] == x && tmp[1] == y) { return; }
 		}
-         this._criticals.push([x, y]); 
-        
-    }
-
-	Draw.cell(x, y);
+		this._criticals.push([x, y]);
+	}
 }
 
 Board._explode = function() {
@@ -63,12 +75,14 @@ Board._explode = function() {
 	cell.atoms -= neighbors.length;
 	Draw.cell(x, y);
 
-	for (var i=0; i<neighbors.length; i++) {
+	for (var i = 0; i < neighbors.length; i++) {
 		var n = neighbors[i];
-		this._addAndCheck(n[0], n[1]);
+		this._addAndCheck(n[0], n[1], cell.player);
 	}
 
-	if (this._criticals.length) {
+	if (Score.isGameOver()) {
+		return;
+	} else if (this._criticals.length) {
 		setTimeout(this._explode.bind(this), this.DELAY);
 	} else {
 		Player.startListening();

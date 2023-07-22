@@ -5,5 +5,6 @@ var Game = {
 Game.start = function() {
     Board.init();
     Draw.init();
+    Score.init();
     Player.startListening();
 }
