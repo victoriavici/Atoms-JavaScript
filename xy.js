@@ -3,6 +3,13 @@ var XY = function(x, y) {
 	this.y = y || 0;
 }
 
+XY.fromString = function(str) {
+	var parts = str.split(",");
+	var x = Number(parts[0]);
+	var y = Number(parts[1]);
+	return new this(x, y);
+}
+
 XY.prototype.add = function(xy) {
 	return new XY(this.x+xy.x, this.y+xy.y);
 }

@@ -32,13 +32,19 @@ Game.prototype._playerDone = function(xy) {
 	}
 }
 
-Game.prototype._turnDone = function(score) {
+Game.prototype._turnDone = function() {
+	var scores = [];
+
+
 	for (var i = 0; i < this._players.length; i++) {
-		this._players[i].setScore(score[i]);
+		var player = this._players[i];
+		var score = this._board.getScoreFor(player);
+		player.setScore(score);
+		scores.push(score);
 	}
 
+	if (Game.isOver(scores)) { return; } 
+
 	this._currentPlayer = (this._currentPlayer+1) % this._players.length;
-	if (!Game.isOver(score)) { 
-        this._askPlayer(); 
-    }
+	this._askPlayer();
 }

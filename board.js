@@ -14,6 +14,22 @@ var Board = function(players, draw) {
 
 	this._build();
 }
+
+Board.prototype.clone = function() {
+	var clone = new Board(this._players, null);
+
+	clone._score = this._score.slice(0);
+
+	for (var p in this._data) {
+		var ourCell = this._data[p];
+		var cloneCell = clone._data[p];
+		cloneCell.atoms = ourCell.atoms;
+		cloneCell.player = ourCell.player;
+	}
+
+	return clone;
+}
+
 Board.prototype.getPlayer = function(xy) {
 	return this._data[xy].player;
 }
@@ -30,11 +46,11 @@ Board.prototype.addAtom = function(xy, player) {
 	this._addAndCheck(xy, player);
 
 	if (Game.isOver(this._score)) {
-		this.onTurnDone(this._score);
+		this.onTurnDone();
 	} else if (this._criticals.length) {
 		this._explode();
 	} else { 
-		this.onTurnDone(this._score);
+		this.onTurnDone();
 	}
 }
 
@@ -45,13 +61,16 @@ Board.prototype._addAndCheck = function(xy, player) {
 		var oldPlayerIndex = this._players.indexOf(cell.player);
 		this._score[oldPlayerIndex]--;
 	}
+
 	var playerIndex = this._players.indexOf(player);
 	this._score[playerIndex]++;
 
 	cell.player = player;
 	cell.atoms++;
-	this._draw.cell(xy, cell.atoms, cell.player);
 
+	if (this._draw) {
+		this._draw.cell(xy, cell.atoms, cell.player);
+	}
 
 	if (cell.atoms > cell.limit) {
 		for (var i = 0; i < this._criticals.length; i++) {
@@ -70,18 +89,24 @@ Board.prototype._explode = function() {
 
 	var neighbors = xy.getNeighbors();
 	cell.atoms -= neighbors.length;
-	this._draw.cell(xy, cell.atoms, cell.player);
+	if (this._draw) {
+		this._draw.cell(xy, cell.atoms, cell.player);
+	}
 
 	for (var i = 0; i < neighbors.length; i++) {
 		this._addAndCheck(neighbors[i], cell.player);
 	}
 
 	if (Game.isOver(this._score)) {
-		this.onTurnDone(this._score);
+		this.onTurnDone();
 	} else if (this._criticals.length) {
-		setTimeout(this._explode.bind(this), this.DELAY);
+		if (this._draw) {
+			setTimeout(this._explode.bind(this), this.DELAY);
+		} else {
+			this._explode();
+		}
 	} else {
-		this.onTurnDone(this._score);
+		this.onTurnDone();
 	}
 }
 
@@ -100,3 +125,7 @@ Board.prototype._build = function() {
 	}
 }
 
+Board.prototype.getScoreFor = function(player) {
+	var index = this._players.indexOf(player);
+	return this._score[index];
+}
