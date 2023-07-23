@@ -1,10 +1,91 @@
-var Board = {
-	DELAY: 200,
-	_data: {},
-	_criticals: []
-};
+var Board = function(players, draw) {
+	this.DELAY = 200;
+	this.onTurnDone = function() {}; 
 
-Board.init = function() {
+	this._draw = draw;
+	this._data = {};
+	this._criticals = [];
+
+	this._players = players;
+	this._score = [];
+	for (var i = 0; i < players.length; i++) {
+		 this._score.push(0);
+	}
+
+	this._build();
+}
+Board.prototype.getPlayer = function(xy) {
+	return this._data[xy].player;
+}
+
+Board.prototype._getLimit = function(xy) {
+	return xy.getNeighbors().length;
+}
+
+Board.prototype.getAtoms = function(xy) {
+	return this._data[xy].atoms;
+}
+
+Board.prototype.addAtom = function(xy, player) {
+	this._addAndCheck(xy, player);
+
+	if (Game.isOver(this._score)) {
+		this.onTurnDone(this._score);
+	} else if (this._criticals.length) {
+		this._explode();
+	} else { 
+		this.onTurnDone(this._score);
+	}
+}
+
+Board.prototype._addAndCheck = function(xy, player) {
+	var cell = this._data[xy];
+
+	if (cell.player) { 
+		var oldPlayerIndex = this._players.indexOf(cell.player);
+		this._score[oldPlayerIndex]--;
+	}
+	var playerIndex = this._players.indexOf(player);
+	this._score[playerIndex]++;
+
+	cell.player = player;
+	cell.atoms++;
+	this._draw.cell(xy, cell.atoms, cell.player);
+
+
+	if (cell.atoms > cell.limit) {
+		for (var i = 0; i < this._criticals.length; i++) {
+			var tmp = this._criticals[i];
+			if (tmp.equals(xy)) {
+				 return;
+				 }
+		}
+		this._criticals.push(xy);
+	}
+}
+
+Board.prototype._explode = function() {
+	var xy = this._criticals.shift();
+	var cell = this._data[xy];
+
+	var neighbors = xy.getNeighbors();
+	cell.atoms -= neighbors.length;
+	this._draw.cell(xy, cell.atoms, cell.player);
+
+	for (var i = 0; i < neighbors.length; i++) {
+		this._addAndCheck(neighbors[i], cell.player);
+	}
+
+	if (Game.isOver(this._score)) {
+		this.onTurnDone(this._score);
+	} else if (this._criticals.length) {
+		setTimeout(this._explode.bind(this), this.DELAY);
+	} else {
+		this.onTurnDone(this._score);
+	}
+}
+
+Board.prototype._build = function() {
 	for (var i = 0; i < Game.SIZE; i++) {
 		for (var j = 0; j < Game.SIZE; j++) {
 			var xy = new XY(i, j);
@@ -12,74 +93,10 @@ Board.init = function() {
 			var cell = {
 				atoms: 0,
 				limit: limit,
-                player: -1
+				player: null
 			}
-			this._data[xy]= cell;
+			this._data[xy] = cell;
 		}
 	}
 }
 
-Board.getPlayer = function(xy) {
-	return this._data[xy].player;
-}
-
-Board._getLimit = function(xy) {
-	return xy.getNeighbors().length;
-}
-
-Board.getAtoms = function(xy) {
-	return this._data[xy].atoms;
-}
-
-Board.addAtom = function(xy, player) {
-	this._addAndCheck(xy, player);
-
-	if (Score.isGameOver()) {
-		return;
-	} else if (this._criticals.length) {
-		Player.stopListening();
-		this._explode();
-	}
-}
-
-Board._addAndCheck = function(xy, player) {
-	var cell = this._data[xy];
-
-	Score.removePoint(cell.player);
-	Score.addPoint(player);
-
-	cell.atoms++;
-	cell.player = player;
-
-	Draw.cell(xy);
-
-	if (cell.atoms > cell.limit) {
-		for (var i = 0; i < this._criticals.length; i++) {
-			var tmp = this._criticals[i];
-			if (tmp.equals(xy)) { return; }
-		}
-		this._criticals.push(xy);
-	}
-}
-
-Board._explode = function() {
-	var xy = this._criticals.shift();
-	var cell = this._data[xy];
-
-	var neighbors = xy.getNeighbors();
-	cell.atoms -= neighbors.length;
-	Draw.cell(xy);
-
-	for (var i = 0; i < neighbors.length; i++) {
-		var n = neighbors[i];
-	this._addAndCheck(neighbors[i], cell.player);
-	}
-
-	if (Score.isGameOver()) {
-		return;
-	} else if (this._criticals.length) {
-		setTimeout(this._explode.bind(this), this.DELAY);
-	} else {
-		Player.startListening();
-	}
-}

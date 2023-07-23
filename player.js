@@ -1,26 +1,21 @@
-var Player = {
-	_current: 0
-};
+var Player = function(name, color) {
+	this._color = color;
+	this._score = document.createElement("span");
 
-Player.startListening = function() {
-	document.body.addEventListener("click", Player);
+	var node = document.createElement("p");
+	node.style.color = color;
+	node.appendChild(document.createTextNode(name + ": "));
+	node.appendChild(this._score);
+	document.body.appendChild(node);
 }
 
-Player.stopListening = function() {
-	document.body.removeEventListener("click", Player);
+Player.prototype.getColor = function() {
+	return this._color;
 }
 
-Player.handleEvent = function(e) {
-	var cursor = new XY(e.clientX, e.clientY);
-    var position = Draw.getPosition(cursor);
-    if (!position) { return; }
+Player.prototype.setScore = function(score) {
+	this._score.innerHTML = score;
+}
 
-	var existing = Board.getPlayer(position);
-	if (existing != -1 && existing != this._current) {
-         return;
-    }
-
-	Board.addAtom(position, this._current);
-	this._current = (this._current + 1) % Score.getPlayerCount();
-
+Player.prototype.play = function(board, draw, callback) {
 }

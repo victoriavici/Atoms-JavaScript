@@ -1,5 +1,8 @@
-var Draw = {
-	POSITIONS: [
+var Draw = function() {
+	this.LINE = 2;
+	this.CELL = 60 + this.LINE;
+	this.ATOM = 7;
+	this.POSITIONS = [
 		null,
 		[new XY(1/2, 1/2)],
 		[new XY(1/4, 1/4), new XY(3/4, 3/4)],
@@ -9,38 +12,29 @@ var Draw = {
 		[new XY(1/4, 1/4), new XY(1/4, 1/2), new XY(1/4, 3/4), new XY(3/4, 1/4), new XY(3/4, 1/2), new XY(3/4, 3/4)],
 		[new XY(1/4, 1/4), new XY(1/4, 1/2), new XY(1/4, 3/4), new XY(1/2, 1/2), new XY(3/4, 1/4), new XY(3/4, 1/2), new XY(3/4, 3/4)],
 		[new XY(1/4, 1/4), new XY(1/4, 1/2), new XY(1/4, 3/4), new XY(1/2, 1/4), new XY(1/2, 3/4), new XY(3/4, 1/4), new XY(3/4, 1/2), new XY(3/4, 3/4)]
-	],
-	CELL: 60,
-	LINE: 2,
-	ATOM: 7,
-    COLORS: ["blue", "red"],
-	_context: null
-};
+	];
 
-Draw.init =  function() {
-    var canvas = document.createElement("canvas");
-    this.CELL += this.LINE;
+	var canvas = document.createElement("canvas");
+	var size = Game.SIZE * this.CELL + this.LINE;
+	canvas.width = size;
+	canvas.height = size;
 
-    var size = Game.SIZE * this.CELL + this.LINE;
-    canvas.width = size;
-    canvas.height = size;
-    
-    this._context = canvas.getContext("2d");
-    this._context.lineWidth = this.LINE;
-    this._context.fillStyle = "#000";
+	this._context = canvas.getContext("2d");
+	this._context.lineWidth = this.LINE;
+	this._context.fillStyle = "#000";
 	this._context.fillRect(0, 0, size, size);
 
-    for (var i = 0; i < Game.SIZE; i++) {
-		for (var j = 0; j < Game.SIZE; j++) {
-			this.cell(new XY(i, j));
+	for (var i=0; i<Game.SIZE; i++) {
+		for (var j=0; j<Game.SIZE; j++) {
+			this.cell(new XY(i, j), 0);
 		}
 	}
 
-    document.body.appendChild(canvas);
-
+	document.body.appendChild(canvas);
 }
 
-Draw.cell = function(xy) {
+
+Draw.prototype.cell = function(xy, atoms, player) {
     var size = this.CELL - this.LINE;
 	var offset = new XY(this.LINE, this.LINE);
 	var leftTop = xy.multiply(this.CELL).add(offset);
@@ -48,17 +42,15 @@ Draw.cell = function(xy) {
     this._context.fillStyle = "#fff";
     this._context.fillRect(leftTop.x, leftTop.y, size, size);
 
-    var count = Board.getAtoms(xy);
-	if (!count) { 
-        return; 
-    }
+	if (!atoms) { 
+		return; 
+	}
 
-    var player = Board.getPlayer(xy);
-	var color = Score.getColor(player);
+	var color = player.getColor();
 	
    //console.log(count);
 
-	var positions = this.POSITIONS[count];
+	var positions = this.POSITIONS[atoms];
 
 	//if (count >= this.POSITIONS.length) { debugger; }
 
@@ -69,7 +61,7 @@ Draw.cell = function(xy) {
 	}
 }
 
-Draw._atom = function(xy, color) {
+Draw.prototype._atom = function(xy, color) {
 	this._context.beginPath();
 
 	this._context.moveTo(xy.x + this.ATOM, xy.y);
@@ -81,7 +73,7 @@ Draw._atom = function(xy, color) {
 
 }
 
-Draw.getPosition = function(cursor) {
+Draw.prototype.getPosition = function(cursor) {
 	var rectangle = this._context.canvas.getBoundingClientRect();
 
 	cursor.x -= rectangle.left;
