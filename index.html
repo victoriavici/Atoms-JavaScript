@@ -15,11 +15,32 @@
 		<script src="player.ai.js"></script>
 		<script src="board.js"></script>
 
+		<p>
+			<button id="start">Start</button>
+			<button id="load">Load</button>
+		</p>
+
 		<script>
-			new Game([
-				new Player.Human("Pan Novák", "blue"),
-				new Player.AI("Robot Emil", "red")
-			]);
+			var start = document.querySelector("#start");
+			var load = document.querySelector("#load");
+			var game = new Game();
+
+			if (!game.canContinue()) { load.disabled = true; }
+
+			start.addEventListener("click", function() {
+				game.start([
+					new Player.Human("Pan Novák", "blue"),
+					new Player.AI("Robot Emil", "red")
+				]);
+				start.disabled = true;
+				load.disabled = true;
+			});
+
+			load.addEventListener("click", function() {
+				game.load();
+				start.disabled = true;
+				load.disabled = true;
+			});
 		</script>
     </body>
 </html>

@@ -15,6 +15,26 @@ var Board = function(players, draw) {
 	this._build();
 }
 
+Board.prototype.getState = function() {
+	return {
+		score: this._score,
+		data: this._data
+	}
+}
+
+Board.prototype.setState = function(state) {
+	this._score = state.score;
+	this._data = state.data;
+
+	for (var p in this._data) {
+		var cell = this._data[p];
+		var player = this._players[cell.player];
+
+		var xy = XY.fromString(p);
+		this._draw.cell(xy, cell.atoms, player);
+	}
+}
+
 Board.prototype.clone = function() {
 	var clone = new Board(this._players, null);
 
@@ -31,11 +51,8 @@ Board.prototype.clone = function() {
 }
 
 Board.prototype.getPlayer = function(xy) {
-	return this._data[xy].player;
-}
-
-Board.prototype._getLimit = function(xy) {
-	return xy.getNeighbors().length;
+	var index = this._data[xy].player;
+	return (index == -1 ? null : this._players[index]);
 }
 
 Board.prototype.getAtoms = function(xy) {
@@ -57,19 +74,18 @@ Board.prototype.addAtom = function(xy, player) {
 Board.prototype._addAndCheck = function(xy, player) {
 	var cell = this._data[xy];
 
-	if (cell.player) { 
-		var oldPlayerIndex = this._players.indexOf(cell.player);
-		this._score[oldPlayerIndex]--;
-	}
+	if (cell.player != -1) { 
+	this._score[cell.player]--;
+}
 
 	var playerIndex = this._players.indexOf(player);
 	this._score[playerIndex]++;
 
-	cell.player = player;
+	cell.player = playerIndex;
 	cell.atoms++;
 
 	if (this._draw) {
-		this._draw.cell(xy, cell.atoms, cell.player);
+		this._draw.cell(xy, cell.atoms, player);
 	}
 
 	if (cell.atoms > cell.limit) {
@@ -87,14 +103,16 @@ Board.prototype._explode = function() {
 	var xy = this._criticals.shift();
 	var cell = this._data[xy];
 
+	var player = this._players[cell.player];
+	
 	var neighbors = xy.getNeighbors();
 	cell.atoms -= neighbors.length;
 	if (this._draw) {
-		this._draw.cell(xy, cell.atoms, cell.player);
+		this._draw.cell(xy, cell.atoms, player);
 	}
 
 	for (var i = 0; i < neighbors.length; i++) {
-		this._addAndCheck(neighbors[i], cell.player);
+		this._addAndCheck(neighbors[i], player);
 	}
 
 	if (Game.isOver(this._score)) {
@@ -118,7 +136,7 @@ Board.prototype._build = function() {
 			var cell = {
 				atoms: 0,
 				limit: limit,
-				player: null
+				player: -1
 			}
 			this._data[xy] = cell;
 		}
@@ -128,4 +146,8 @@ Board.prototype._build = function() {
 Board.prototype.getScoreFor = function(player) {
 	var index = this._players.indexOf(player);
 	return this._score[index];
+}
+
+Board.prototype._getLimit = function(xy) {
+	return xy.getNeighbors().length;
 }
