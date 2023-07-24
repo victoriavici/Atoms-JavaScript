@@ -2,6 +2,8 @@ var Board = function(players, draw) {
 	this.DELAY = 200;
 	this.onTurnDone = function() {}; 
 
+	this._audio = new Audio();
+
 	this._draw = draw;
 	this._data = {};
 	this._criticals = [];
@@ -65,7 +67,7 @@ Board.prototype.addAtom = function(xy, player) {
 	if (Game.isOver(this._score)) {
 		this.onTurnDone();
 	} else if (this._criticals.length) {
-		this._explode();
+		this._explode(0);
 	} else { 
 		this.onTurnDone();
 	}
@@ -99,7 +101,13 @@ Board.prototype._addAndCheck = function(xy, player) {
 	}
 }
 
-Board.prototype._explode = function() {
+Board.prototype._explode = function(level) {
+
+	if (Game.isOver(this._score) || !this._criticals.length) {
+		this.onTurnDone();
+		return;
+	}
+
 	var xy = this._criticals.shift();
 	var cell = this._data[xy];
 
@@ -107,25 +115,20 @@ Board.prototype._explode = function() {
 	
 	var neighbors = xy.getNeighbors();
 	cell.atoms -= neighbors.length;
-	if (this._draw) {
-		this._draw.cell(xy, cell.atoms, player);
-	}
-
+	
 	for (var i = 0; i < neighbors.length; i++) {
 		this._addAndCheck(neighbors[i], player);
 	}
 
-	if (Game.isOver(this._score)) {
-		this.onTurnDone();
-	} else if (this._criticals.length) {
-		if (this._draw) {
-			setTimeout(this._explode.bind(this), this.DELAY);
-		} else {
-			this._explode();
-		}
+	if (this._draw) {
+		this._draw.cell(xy, cell.atoms, player);
+		this._audio.play(level);
+		setTimeout(this._audio.stop.bind(this._audio), this.DELAY/2);
+		setTimeout(this._explode.bind(this, level + 1), this.DELAY);
 	} else {
-		this.onTurnDone();
+		this._explode(level + 1);
 	}
+
 }
 
 Board.prototype._build = function() {
